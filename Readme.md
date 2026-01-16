@@ -1,21 +1,43 @@
-# Riffle- Poker Chips Manager 🎲
+# **Riffle — Poker Chips Manager 🎲**
 
-A minimalist, real-time web application for tracking poker chips during physical home games. 
+A real-time web app for managing poker chips during live, in-person games.
 
-**Note:** This app **does not deal cards**. It replaces the physical chip set, handling the math, pot calculation, and betting rounds automatically.
+Riffle replaces the physical chip set and manual calculations. It tracks bets, manages the pot, and syncs every action instantly across all players’ devices.
 
-## 🚀 Features
+**Live Demo:** [https://riffle-poker-chips-manager.vercel.app/](https://riffle-poker-chips-manager.vercel.app/)
 
-*   **Instant Setup:** No login or sign-up required. Just enter a name and join.
-*   **Real-Time Sync:** Powered by Socket.io, every bet updates instantly on all devices.
-*   **Betting Logic:** Handle Bets, Raises, Calls, Checks, Folds, and All-ins with validation.
-*   **Pot Management:** Automatically calculates the pot and "Call" amounts.
-*   **Win Distribution:** Select a winner to instantly award the pot and reset the round.
-*   **Game Logs:** A persistent chat-like history of every action.
-*   **Mobile First:** Designed with sticky controls for easy use on phones.
+> **Note:** Riffle does not deal cards. It focuses purely on chip management, betting logic, and round flow.
 
-## 🛠 Tech Stack
+---
 
-*   **Frontend:** Next.js (App Router), Tailwind CSS
-*   **Backend:** Node.js, Express, Socket.io
-*   **Storage:** In-memory (RAM) - *Rooms reset if server restarts.*
+## **Key Features**
+
+* **Zero Friction Setup**
+  Join a table instantly. No accounts, no authentication.
+
+* **Real-Time Sync**
+  Every bet, raise, and fold updates live for all players using WebSockets.
+
+* **Complete Betting Logic**
+  Supports Bet, Raise, Call, Check, Fold, and All-in with proper validation.
+
+* **Automatic Pot Tracking**
+  Calculates pot size and required call amounts automatically.
+
+* **Winner Distribution**
+  Select a winner to award the pot and reset the round in one action.
+
+* **Action Log**
+  A persistent, chat-style history of every move at the table.
+
+* **Mobile-First Design**
+  Sticky controls and touch-friendly layout for phone-based play.
+
+---
+
+## **Tech Stack**
+
+* **Frontend:** Next.js (App Router), Tailwind CSS
+* **Backend:** Node.js, Express, Socket.io
+* **State Management:** In-memory (RAM)
+  *Game rooms reset on server restart*
