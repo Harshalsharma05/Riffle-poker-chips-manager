@@ -28,10 +28,10 @@ export default function Home() {
       <nav className="w-full max-w-7xl mx-auto p-6 flex justify-between items-center z-10">
         <div className="flex items-center gap-2">
           {/* Simple Icon/Logo */}
-          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center font-bold text-slate-900 text-lg">
-            $
+          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center font-bold text-slate-900 text-lg">
+            <img src="/icon.svg" alt="Riffle Logo" className="w-8 h-8" />
           </div>
-          <span className="font-bold text-xl tracking-tight">Riffle</span>
+          <span className="font-bold text-2xl tracking-tight">Riffle</span>
         </div>
         <div>
           <Link
@@ -65,7 +65,7 @@ export default function Home() {
             <div className="flex bg-slate-900/50 p-1 rounded-lg mb-6">
               <button
                 onClick={() => setIsJoining(true)}
-                className={`flex-1 py-2 text-sm font-bold rounded-md transition ${
+                className={`flex-1 py-2 text-sm font-bold rounded-md transition cursor-pointer ${
                   isJoining
                     ? "bg-slate-700 text-white shadow"
                     : "text-slate-500 hover:text-slate-300"
@@ -75,7 +75,7 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setIsJoining(false)}
-                className={`flex-1 py-2 text-sm font-bold rounded-md transition ${
+                className={`flex-1 py-2 text-sm font-bold rounded-md transition cursor-pointer ${
                   !isJoining
                     ? "bg-green-600 text-white shadow"
                     : "text-slate-500 hover:text-slate-300"
@@ -118,7 +118,7 @@ export default function Home() {
                   </div>
                   <button
                     type="submit"
-                    className="w-full py-4 bg-slate-100 text-slate-900 hover:bg-white rounded-xl font-bold text-lg transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                    className="w-full py-4 bg-slate-100 text-slate-900 hover:bg-white rounded-xl font-bold text-lg transition shadow-lg hover:shadow-xl hover:-translate-y-0.5 cursor-pointer"
                   >
                     Enter Room
                   </button>

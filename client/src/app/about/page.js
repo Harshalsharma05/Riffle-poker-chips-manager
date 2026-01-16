@@ -7,8 +7,8 @@ export default function About() {
       {/* --- NAVBAR (Consistent with Home) --- */}
       <nav className="w-full max-w-7xl mx-auto p-6 flex justify-between items-center z-10">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center font-bold text-slate-900 text-lg group-hover:scale-110 transition">
-            $
+          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center font-bold text-slate-900 text-lg group-hover:scale-110 transition">
+            <img src="/icon.svg" alt="Riffle Logo" className="w-8 h-8" />
           </div>
           <span className="font-bold text-xl tracking-tight">Riffle</span>
         </Link>
