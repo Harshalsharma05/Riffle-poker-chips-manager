@@ -18,7 +18,9 @@ export default function Home() {
 
   const handleCreate = () => {
     if (!name) return alert("Please enter your name first");
-    const newCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const newCode = Array.from({ length: 4 }, () => letters[Math.floor(Math.random() * letters.length)]).join('');
     router.push(`/room/${newCode}?name=${name}`);
   };
 
