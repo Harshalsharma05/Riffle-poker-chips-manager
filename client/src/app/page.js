@@ -31,7 +31,7 @@ export default function Home() {
           <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center font-bold text-slate-900 text-lg">
             $
           </div>
-          <span className="font-bold text-xl tracking-tight">PokerChips</span>
+          <span className="font-bold text-xl tracking-tight">Riffle</span>
         </div>
         <div>
           <Link
