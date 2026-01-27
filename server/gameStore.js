@@ -1,7 +1,11 @@
 // server/gameStore.js
 const rooms = {};
+const socketToPlayerId = {}; // Maps socket.id -> persistent playerId
 
-const joinRoom = (roomId, playerId, playerName) => {
+const joinRoom = (roomId, playerId, playerName, socketId) => {
+  // Store the socket-to-player mapping
+  socketToPlayerId[socketId] = playerId;
+
   // 1. If room doesn't exist, create it on the fly
   if (!rooms[roomId]) {
     rooms[roomId] = {
@@ -18,10 +22,25 @@ const joinRoom = (roomId, playerId, playerName) => {
   // 2. Check if player already exists (reconnection logic)
   const existingPlayer = room.players.find((p) => p.id === playerId);
   if (existingPlayer) {
-    return { room, player: existingPlayer };
+    console.log(
+      `Player ${playerName} (${playerId}) reconnected to room ${roomId}`,
+    );
+    return { room, player: existingPlayer, isReconnect: true };
   }
 
-  // 3. Add new player
+  // 3. Check for duplicate name (but not for the player themselves)
+  const nameExists = room.players.some(
+    (p) =>
+      p.name.toLowerCase() === playerName.toLowerCase() && p.id !== playerId,
+  );
+  if (nameExists) {
+    console.log(`Name "${playerName}" already taken in room ${roomId}`);
+    return {
+      error: "This name is already taken. Please choose a different name.",
+    };
+  }
+
+  // 4. Add new player
   const newPlayer = {
     id: playerId,
     name: playerName,
@@ -32,31 +51,47 @@ const joinRoom = (roomId, playerId, playerName) => {
 
   room.players.push(newPlayer);
   room.logs.push(`${playerName} joined the table.`);
+  console.log(`New player ${playerName} (${playerId}) joined room ${roomId}`);
 
-  return { room, player: newPlayer };
+  return { room, player: newPlayer, isReconnect: false };
 };
 
 const getRoom = (roomId) => rooms[roomId];
 
-const removePlayer = (playerId) => {
-  for (const roomId in rooms) {
-    const room = rooms[roomId];
-    const index = room.players.findIndex((p) => p.id === playerId);
+const removePlayer = (socketId, isIntentional = false) => {
+  // Get the persistent player ID from socket mapping
+  const playerId = socketToPlayerId[socketId];
 
-    if (index !== -1) {
-      const removedPlayer = room.players[index];
-      room.players.splice(index, 1);
+  // Clean up the mapping
+  delete socketToPlayerId[socketId];
 
-      // If room is empty, delete it
-      if (room.players.length === 0) {
-        delete rooms[roomId];
-        return { roomId, deleted: true };
+  // If intentional leave, remove player completely
+  if (isIntentional && playerId) {
+    for (const roomId in rooms) {
+      const room = rooms[roomId];
+      const index = room.players.findIndex((p) => p.id === playerId);
+
+      if (index !== -1) {
+        const removedPlayer = room.players[index];
+        room.players.splice(index, 1);
+
+        // If room is empty, delete it
+        if (room.players.length === 0) {
+          delete rooms[roomId];
+          return { roomId, deleted: true };
+        }
+
+        room.logs.push(`${removedPlayer.name} left.`);
+        return { roomId, room };
       }
-
-      room.logs.push(`${removedPlayer.name} left.`);
-      return { roomId, room };
     }
   }
+
+  // For unintentional disconnects (refresh, etc.), just clean up socket mapping
+  // Player data remains in room for reconnection
+  console.log(
+    `Socket ${socketId} disconnected (player ${playerId} can reconnect)`,
+  );
   return null;
 };
 
@@ -90,7 +125,7 @@ const placeBet = (roomId, playerId, amount) => {
   else if (player.chips === 0) action = "went ALL IN";
   else action = `bet ${amount}`;
 
-  room.logs.push(`${player.name} ${action}.`);
+  room.logs.push(`${player.name} ${action}. Pot: ${room.pot}`);
 
   return { room };
 };
@@ -138,7 +173,9 @@ const takeFromPot = (roomId, playerId, amount) => {
   }
 
   // 4. Log the action
-  room.logs.push(`${player.name} took back ${amount} chips from the pot.`);
+  room.logs.push(
+    `${player.name} took back ${amount} chips from the pot. Pot: ${room.pot}`,
+  );
 
   return { room };
 };
@@ -168,6 +205,11 @@ const endRound = (roomId, winnerId) => {
   return { room };
 };
 
+// Helper function to get player ID from socket ID
+const getPlayerIdFromSocket = (socketId) => {
+  return socketToPlayerId[socketId];
+};
+
 module.exports = {
   joinRoom,
   getRoom,
@@ -176,4 +218,5 @@ module.exports = {
   foldPlayer,
   takeFromPot,
   endRound,
+  getPlayerIdFromSocket,
 };

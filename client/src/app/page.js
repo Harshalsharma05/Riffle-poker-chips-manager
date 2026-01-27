@@ -12,16 +12,17 @@ export default function Home() {
 
   const handleJoin = (e) => {
     e.preventDefault();
-    if (!name || !roomCode) return alert("Please enter name and room code");
-    router.push(`/room/${roomCode}?name=${name}`);
+    if (!roomCode) return alert("Please enter room code");
+    router.push(`/room/${roomCode}`);
   };
 
   const handleCreate = () => {
-    if (!name) return alert("Please enter your name first");
-
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const newCode = Array.from({ length: 4 }, () => letters[Math.floor(Math.random() * letters.length)]).join('');
-    router.push(`/room/${newCode}?name=${name}`);
+    const newCode = Array.from(
+      { length: 4 },
+      () => letters[Math.floor(Math.random() * letters.length)],
+    ).join("");
+    router.push(`/room/${newCode}`);
   };
 
   return (
@@ -88,19 +89,6 @@ export default function Home() {
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">
-                  Your Name
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full p-4 bg-slate-900 rounded-xl border border-slate-700 focus:outline-none focus:border-green-500 transition font-medium"
-                  placeholder="e.g. Maverick"
-                />
-              </div>
-
               {isJoining ? (
                 <form onSubmit={handleJoin} className="space-y-4">
                   <div>
@@ -128,8 +116,8 @@ export default function Home() {
               ) : (
                 <div className="space-y-4">
                   <div className="p-4 bg-green-900/20 border border-green-900/50 rounded-xl text-sm text-green-200">
-                    You are about to create a new table. You will be the first
-                    player.
+                    Create a new table and get a shareable room code. You'll
+                    choose your name next.
                   </div>
                   <button
                     onClick={handleCreate}

@@ -13,6 +13,7 @@ const {
   foldPlayer,
   takeFromPot,
   endRound,
+  getPlayerIdFromSocket,
 } = require("./gameStore");
 
 const app = express();
@@ -43,15 +44,16 @@ io.on("connection", (socket) => {
   });
 
   // Event: Join a Room
-  socket.on("join_room", ({ roomId, playerName }) => {
-    const result = joinRoom(roomId, socket.id, playerName);
+  socket.on("join_room", ({ roomId, playerName, playerId, socketId }) => {
+    const result = joinRoom(roomId, playerId, playerName, socket.id);
 
     if (result.error) {
-      socket.emit("error", result.error);
+      // Send specific event for name taken
+      socket.emit("name_taken", result.error);
       return;
     }
 
-    const { room, player } = result;
+    const { room, player, isReconnect } = result;
 
     // Join the socket channel
     socket.join(roomId);
@@ -62,22 +64,33 @@ io.on("connection", (socket) => {
       player,
       players: room.players,
       logs: room.logs,
+      pot: room.pot,
     });
 
     // 2. Tell everyone else in the room that the list of players changed
-    socket
-      .to(roomId)
-      .emit("update_game", { players: room.players, logs: room.logs });
+    // (Skip if it's a reconnection to avoid spam)
+    if (!isReconnect) {
+      socket.to(roomId).emit("update_game", {
+        players: room.players,
+        logs: room.logs,
+        pot: room.pot,
+      });
+    }
 
-    console.log(`${playerName} joined room ${roomId}`);
+    console.log(
+      `${playerName} ${isReconnect ? "reconnected to" : "joined"} room ${roomId}`,
+    );
   });
 
   // Event: Player Bets/Raises/Calls
-  socket.on("action_bet", ({ roomId, amount }) => {
+  socket.on("action_bet", ({ roomId, amount, playerId }) => {
     // Convert string to number just in case
     const betAmount = parseInt(amount, 10);
 
-    const result = placeBet(roomId, socket.id, betAmount);
+    // Use provided playerId or fall back to socket-based lookup
+    const playerIdToUse = playerId || getPlayerIdFromSocket(socket.id);
+
+    const result = placeBet(roomId, playerIdToUse, betAmount);
 
     if (result.error) {
       socket.emit("error", result.error);
@@ -92,8 +105,11 @@ io.on("connection", (socket) => {
   });
 
   // Event: Player Folds
-  socket.on("action_fold", ({ roomId }) => {
-    const result = foldPlayer(roomId, socket.id);
+  socket.on("action_fold", ({ roomId, playerId }) => {
+    // Use provided playerId or fall back to socket-based lookup
+    const playerIdToUse = playerId || getPlayerIdFromSocket(socket.id);
+
+    const result = foldPlayer(roomId, playerIdToUse);
 
     if (result.error) {
       socket.emit("error", result.error);
@@ -106,10 +122,13 @@ io.on("connection", (socket) => {
   });
 
   // Event: Player Takes Back Chips from Pot
-  socket.on("action_take", ({ roomId, amount }) => {
+  socket.on("action_take", ({ roomId, amount, playerId }) => {
     const takeAmount = parseInt(amount, 10);
 
-    const result = takeFromPot(roomId, socket.id, takeAmount);
+    // Use provided playerId or fall back to socket-based lookup
+    const playerIdToUse = playerId || getPlayerIdFromSocket(socket.id);
+
+    const result = takeFromPot(roomId, playerIdToUse, takeAmount);
 
     if (result.error) {
       socket.emit("error", result.error);
@@ -137,9 +156,9 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Event: Disconnect
-  socket.on("disconnect", () => {
-    const result = removePlayer(socket.id);
+  // Event: Intentional Leave Room
+  socket.on("leave_room", ({ roomId, playerId }) => {
+    const result = removePlayer(socket.id, true); // true = intentional leave
 
     if (result && !result.deleted) {
       const { roomId, room } = result;
@@ -147,8 +166,21 @@ io.on("connection", (socket) => {
       io.to(roomId).emit("update_game", {
         players: room.players,
         logs: room.logs,
+        pot: room.pot,
       });
     }
+
+    console.log(`Player intentionally left room ${roomId}`);
+  });
+
+  // Event: Disconnect
+  socket.on("disconnect", () => {
+    // Don't remove player on disconnect - they might reconnect
+    // Only clean up the socket-to-player mapping
+    const result = removePlayer(socket.id, false); // false = not intentional
+
+    // Don't notify other players - they'll see the player is still there
+    // and can continue the game
 
     console.log("User Disconnected", socket.id);
   });
